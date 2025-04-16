@@ -9,55 +9,56 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as Location from "expo-location";
+import { LOCATION_TASK_NAME, setUpdateLocationHandler } from "./LocationTask";
 
 export default function App() {
   const mapRef = useRef<MapView | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
-  const locationSubscription = useRef<Location.LocationSubscription | null>(
-    null
-  );
-
-  const getCurrentLocation = async () => {
-    setLoading(true);
+  const startTracking = async () => {
     try {
-      setLoading(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestBackgroundPermissionsAsync();
+
       if (status !== "granted") {
-        Alert.alert("Allow Location", "Please grant location permission");
+        Alert.alert(
+          "Permission required",
+          "Enable background location tracking."
+        );
         return;
       }
 
-      const subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Balanced,
-          timeInterval: 2000, // update every 2 seconds
-          distanceInterval: 5, // or every 5 meters moved
-        },
-        (location) => {
-          console.log(location?.coords);
-          setUserLocation(location.coords);
-        }
+      const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+        LOCATION_TASK_NAME
       );
 
-      locationSubscription.current = subscription;
-    } catch (err: any) {
-      console.log("Error", err);
-      setLoading(true);
-    } finally {
-      setLoading(false);
+      if (!hasStarted) {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000, // every 5 seconds
+          distanceInterval: 5, // every 5 meters
+          showsBackgroundLocationIndicator: true, // iOS only
+          foregroundService: {
+            notificationTitle: "Tracking location",
+            notificationBody:
+              "Your location is being tracked in the background.",
+          },
+        });
+        console.log("✅ Background location tracking started");
+      } else {
+        console.log("🔁 Background location tracking already active");
+      }
+    } catch (err) {
+      console.error("❌ Error starting background location tracking:", err);
     }
   };
 
   useEffect(() => {
-    getCurrentLocation();
-    // Cleanup on unmount
-    return () => {
-      if (locationSubscription.current) {
-        locationSubscription.current.remove();
-      }
-    };
+    setUpdateLocationHandler((coords) => {
+      setUserLocation(coords);
+    });
+
+    startTracking();
   }, []);
 
   const focusMap = () => {
