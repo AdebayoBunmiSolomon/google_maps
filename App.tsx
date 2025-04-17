@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { LOCATION_TASK_NAME, setUpdateLocationHandler } from "./LocationTask";
+import MapViewDirections from "react-native-maps-directions";
 
 export default function App() {
   const mapRef = useRef<MapView | null>(null);
@@ -17,7 +18,10 @@ export default function App() {
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
 
+  const destination = { latitude: 6.597631, longitude: 3.354084 }; // Allen, Ikeja-Lagos
+
   const startTracking = async () => {
+    setLoading(true);
     try {
       const foreGround = await Location.requestForegroundPermissionsAsync();
       if (foreGround.status !== "granted") {
@@ -56,9 +60,11 @@ export default function App() {
         console.log("✅ Background location tracking started");
       } else {
         console.log("🔁 Background location tracking already active");
+        setLoading(false);
       }
     } catch (err) {
       console.error("❌ Error starting background location tracking:", err);
+      setLoading(false);
     }
   };
 
@@ -102,13 +108,36 @@ export default function App() {
         ref={mapRef}
         followsUserLocation={false}
         mapType='hybrid'>
-        {userLocation && (
-          <Marker
-            coordinate={{
-              latitude: userLocation.latitude,
-              longitude: userLocation.longitude,
-            }}
-          />
+        {userLocation && destination && (
+          <>
+            <Marker
+              coordinate={{
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+              }}
+              title='Location'
+            />
+            <Marker
+              coordinate={{
+                latitude: destination?.latitude,
+                longitude: destination?.longitude,
+              }}
+              title='Destination'
+            />
+            <MapViewDirections
+              origin={userLocation}
+              destination={destination}
+              apikey={""}
+              strokeWidth={4}
+              strokeColor='hotpink'
+              onError={(err) => {
+                console.error("❌ Map directions error:", err);
+              }}
+              onReady={(result) => {
+                console.log("✅ Route distance:", result.distance, "km");
+              }}
+            />
+          </>
         )}
       </MapView>
       <View style={styles.buttonContainer}>
@@ -118,6 +147,16 @@ export default function App() {
           ) : (
             <Text style={styles.btnText}>Refocus</Text>
           )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {}}
+          style={[
+            styles.refocusBtn,
+            {
+              backgroundColor: "blue",
+            },
+          ]}>
+          <Text style={styles.btnText}>Get Directions</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -134,18 +173,19 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: "absolute",
-    bottom: 20,
-    paddingRight: 20,
+    bottom: 10,
+    paddingHorizontal: 10,
     width: "100%",
-    justifyContent: "center",
-    alignItems: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    flexDirection: "row",
   },
   refocusBtn: {
     backgroundColor: "red",
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 15,
-    width: "60%",
+    width: "45%",
     justifyContent: "center",
     alignItems: "center",
   },

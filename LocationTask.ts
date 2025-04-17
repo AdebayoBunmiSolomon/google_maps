@@ -28,10 +28,6 @@ TaskManager.defineTask(
 
     if (data?.locations?.length) {
       const latestLocation = data.locations[0];
-      const { latitude, longitude } = latestLocation.coords;
-
-      console.log("📍 Background location:", latitude, longitude);
-
       if (updateLocation) {
         updateLocation(latestLocation.coords); // Push location to app state
       }
