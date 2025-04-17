@@ -16,8 +16,17 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [userLocation, setUserLocation] =
     useState<Location.LocationObjectCoords | null>(null);
+
   const startTracking = async () => {
     try {
+      const foreGround = await Location.requestForegroundPermissionsAsync();
+      if (foreGround.status !== "granted") {
+        Alert.alert(
+          "Foreground Permission required",
+          "Enable background location tracking."
+        );
+        return;
+      }
       const { status } = await Location.requestBackgroundPermissionsAsync();
 
       if (status !== "granted") {
