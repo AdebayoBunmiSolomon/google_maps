@@ -57,13 +57,13 @@ export default function App() {
               "Your location is being tracked in the background.",
           },
         });
-        console.log("✅ Background location tracking started");
+        console.log("Background location tracking started");
       } else {
-        console.log("🔁 Background location tracking already active");
+        console.log("Background location tracking already active");
         setLoading(false);
       }
     } catch (err) {
-      console.error("❌ Error starting background location tracking:", err);
+      console.error("Error starting background location tracking:", err);
       setLoading(false);
     }
   };
@@ -131,10 +131,10 @@ export default function App() {
               strokeWidth={4}
               strokeColor='hotpink'
               onError={(err) => {
-                console.error("❌ Map directions error:", err);
+                console.error("Map directions error:", err);
               }}
               onReady={(result) => {
-                console.log("✅ Route distance:", result.distance, "km");
+                console.log("Route distance:", result.distance, "km");
               }}
             />
           </>

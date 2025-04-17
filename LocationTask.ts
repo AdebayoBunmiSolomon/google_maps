@@ -12,7 +12,7 @@ export const setUpdateLocationHandler = (
   updateLocation = handler;
 };
 
-// ✅ Make the task function async to match the expected return type (Promise)
+//Make the task function async to match the expected return type of Promise
 TaskManager.defineTask(
   LOCATION_TASK_NAME,
   async ({
